@@ -78,6 +78,15 @@
   .split-col.linh .val{color:#f9a825;}
   .btn-reset{width:100%; margin-top:12px; padding:13px; font-size:1rem; font-weight:700; color:#fff; background:var(--blue); border:none; border-radius:12px; cursor:pointer;}
 
+  /* Ai cần trả ai */
+  .settle-subtitle{font-size:.8rem; font-weight:600; color:var(--muted); margin-bottom:6px;}
+  .settle-row{display:flex; justify-content:space-between; padding:6px 0; font-size:.88rem; border-bottom:1px dashed var(--border);}
+  .settle-row:last-child{border-bottom:none;}
+  .settle-rows{margin-bottom:10px;}
+  .settle-divider{height:1px; background:var(--border); margin:12px 0;}
+  .settle-result{text-align:center; font-size:1.05rem; font-weight:700; padding:12px; border-radius:10px; background:#f3e5f5; color:#6a1b9a;}
+  .settle-result.balanced{background:var(--green-light); color:var(--green);}
+
   /* Lịch sử kỳ */
   .period{padding:10px 0; border-bottom:1px solid var(--border); font-size:.88rem;}
   .period:last-child{border-bottom:none;}
@@ -162,6 +171,24 @@
     <div class="split-col linh"><div class="name">Linh</div><div class="pct">20%</div><div class="val" id="splitLinh">0 ₫</div></div>
   </div>
   <button class="btn-reset" id="btnResetPeriod" onclick="resetPeriod()" type="button">✅ Đã thanh toán — Chốt & Reset kỳ mới</button>
+</div>
+
+<!-- 4b. AI CẦN TRẢ AI -->
+<div class="card">
+  <h2>💸 Ai cần trả ai</h2>
+
+  <div class="settle-subtitle">Quỹ cần hoàn lại cho người đã đi chợ</div>
+  <div id="reimburseList" class="settle-rows"><div class="empty">Chưa có ai chi tiêu</div></div>
+
+  <div class="settle-divider"></div>
+
+  <div class="settle-subtitle">Đối chiếu phần đóng góp của Linh (20%)</div>
+  <div class="settle-rows">
+    <div class="settle-row"><span>Linh đã đóng góp kỳ này</span><b id="settleLinhIn">0 ₫</b></div>
+    <div class="settle-row"><span>Linh cần đóng theo tỷ lệ (20%)</span><b id="settleLinhNeed">0 ₫</b></div>
+  </div>
+
+  <div class="settle-result" id="settleResult">Đã cân bằng — không ai cần trả ai</div>
 </div>
 
 <!-- 5. LỊCH SỬ KỲ -->
@@ -373,9 +400,39 @@ function render(){
   stat.innerHTML = names.length ? names.map(n => `<div class="stat-row"><span>${n}</span><b>${fmt(byWho[n])}</b></div>`).join('') : '<div class="empty">Chưa có dữ liệu</div>';
 
   // Chia 8-2
+  const requiredMy = Math.round(out * 0.8);
+  const requiredLinh = out - requiredMy; // đảm bảo tổng đúng bằng out, tránh lệch do làm tròn
   document.getElementById('splitTotal').textContent = fmt(out);
-  document.getElementById('splitMy').textContent = fmt(Math.round(out * 0.8));
-  document.getElementById('splitLinh').textContent = fmt(Math.round(out * 0.2));
+  document.getElementById('splitMy').textContent = fmt(requiredMy);
+  document.getElementById('splitLinh').textContent = fmt(requiredLinh);
+
+  // Ai cần trả ai
+  // 1) Quỹ cần hoàn lại cho từng người đã trực tiếp đi chợ (bất kể thuộc nhóm My hay Linh)
+  const reimburseEl = document.getElementById('reimburseList');
+  reimburseEl.innerHTML = names.length
+    ? names.map(n => `<div class="settle-row"><span>${n}</span><b>${fmt(byWho[n])}</b></div>`).join('')
+    : '<div class="empty">Chưa có ai chi tiêu</div>';
+
+  // 2) Mẹ Hà + Loan + My được gộp chung là "My" (bên chịu 80%).
+  //    Chỉ cần đối chiếu phần Linh đã đóng góp với phần Linh phải chịu (20%) —
+  //    lệch bao nhiêu thì đó là số tiền cần chuyển giữa My và Linh để hoàn tiền cho người đã đi chợ.
+  const contributedLinh = txs.filter(t => t.type === 'income' && t.who === 'Linh').reduce((s, t) => s + Number(t.amount), 0);
+  const settle = contributedLinh - requiredLinh; // dương: Linh đóng dư -> My cần trả lại Linh; âm: Linh đóng thiếu -> Linh cần trả My
+
+  document.getElementById('settleLinhIn').textContent = fmt(contributedLinh);
+  document.getElementById('settleLinhNeed').textContent = fmt(requiredLinh);
+
+  const settleEl = document.getElementById('settleResult');
+  if (Math.abs(settle) < 1) {
+    settleEl.textContent = '✅ Đã cân bằng — không ai cần trả ai';
+    settleEl.className = 'settle-result balanced';
+  } else if (settle > 0) {
+    settleEl.textContent = `👉 My cần trả lại Linh: ${fmt(settle)}`;
+    settleEl.className = 'settle-result';
+  } else {
+    settleEl.textContent = `👉 Linh cần trả My: ${fmt(-settle)}`;
+    settleEl.className = 'settle-result';
+  }
 
   // Lịch sử kỳ
   const pl = document.getElementById('periodList');
