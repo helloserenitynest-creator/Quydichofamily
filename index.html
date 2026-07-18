@@ -50,10 +50,13 @@
   .tx .info{flex:1; min-width:0;}
   .tx .who{font-weight:600; font-size:.95rem;}
   .tx .note{font-size:.82rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .tx .note.expanded{white-space:normal; overflow:visible; text-overflow:unset; word-break:break-word;}
   .tx .date{font-size:.75rem; color:var(--muted);}
   .tx .amt{font-weight:700; white-space:nowrap;}
   .tx.expense .amt{color:var(--red);}
   .tx.income .amt{color:var(--green);}
+  .tx .actions{display:flex; flex-direction:column; align-items:center; gap:2px;}
+  .tx .detail-btn{border:none; background:none; color:#9aa0a6; font-size:1.05rem; cursor:pointer; padding:6px;}
   .tx .del{border:none; background:none; color:#bbb; font-size:1.2rem; cursor:pointer; padding:6px;}
   .empty{text-align:center; color:var(--muted); padding:20px 0; font-size:.9rem;}
 
@@ -77,6 +80,15 @@
   .split-col.my .val{color:var(--blue);}
   .split-col.linh .val{color:#f9a825;}
   .btn-reset{width:100%; margin-top:12px; padding:13px; font-size:1rem; font-weight:700; color:#fff; background:var(--blue); border:none; border-radius:12px; cursor:pointer;}
+
+  /* Đổi tỷ lệ chia */
+  .ratio-toggle{background:none; border:none; color:var(--blue); font-size:.8rem; font-weight:600; text-decoration:underline; cursor:pointer; padding:0; margin-bottom:2px;}
+  .ratio-editor{display:none; background:#fff; border-radius:10px; padding:12px; margin-bottom:10px;}
+  .ratio-editor.show{display:block;}
+  .ratio-editor .row{display:flex; align-items:center; gap:8px;}
+  .ratio-editor input[type=number]{width:70px; padding:8px; font-size:1rem; border:1.5px solid var(--border); border-radius:8px; text-align:center;}
+  .ratio-editor .btn-save-ratio{padding:8px 14px; font-size:.9rem; font-weight:700; color:#fff; background:var(--blue); border:none; border-radius:8px; cursor:pointer;}
+  .ratio-editor .hint{font-size:.75rem; color:var(--muted); margin-top:6px;}
 
   /* Ai cần trả ai */
   .settle-subtitle{font-size:.8rem; font-weight:600; color:var(--muted); margin-bottom:6px;}
@@ -117,7 +129,7 @@
 </div>
 
 <h1>🛒 Quỹ Đi Chợ</h1>
-<p class="subtitle">Quỹ chung gia đình — My 80% · Linh 20%</p>
+<p class="subtitle" id="subtitle">Quỹ chung gia đình — My 80% · Linh 20%</p>
 
 <!-- 1. SỐ DƯ QUỸ -->
 <div class="card balance">
@@ -157,7 +169,7 @@
 
 <!-- Thống kê chi theo người -->
 <div class="card">
-  <h2>📊 Chi tiêu theo người</h2>
+  <h2>📊 Chi tiêu theo người <span id="statMonthLabel" style="font-weight:400; color:var(--muted); font-size:.8rem;"></span></h2>
   <div id="statList"><div class="empty">Chưa có dữ liệu</div></div>
 </div>
 
@@ -165,11 +177,23 @@
 <div class="card split">
   <h2>🤝 Chia phần My & Linh</h2>
   <div class="total">Tổng chi tiêu kỳ này<b id="splitTotal">0 ₫</b></div>
-  <div class="split-bar"><div class="my" style="width:80%"></div><div class="linh" style="width:20%"></div></div>
+  <div class="split-bar"><div class="my" id="splitBarMy" style="width:80%"></div><div class="linh" id="splitBarLinh" style="width:20%"></div></div>
   <div class="split-cols">
-    <div class="split-col my"><div class="name">My</div><div class="pct">80%</div><div class="val" id="splitMy">0 ₫</div></div>
-    <div class="split-col linh"><div class="name">Linh</div><div class="pct">20%</div><div class="val" id="splitLinh">0 ₫</div></div>
+    <div class="split-col my"><div class="name">My</div><div class="pct" id="splitPctMy">80%</div><div class="val" id="splitMy">0 ₫</div></div>
+    <div class="split-col linh"><div class="name">Linh</div><div class="pct" id="splitPctLinh">20%</div><div class="val" id="splitLinh">0 ₫</div></div>
   </div>
+
+  <button class="ratio-toggle" onclick="toggleRatioEditor()" type="button">⚙️ Đổi tỷ lệ chia cho kỳ này</button>
+  <div class="ratio-editor" id="ratioEditor">
+    <div class="row">
+      <span>My</span>
+      <input type="number" id="ratioMyInput" min="1" max="99" value="80" oninput="updateRatioPreview()">
+      <span>% — Linh <b id="ratioLinhPreview">20</b>%</span>
+    </div>
+    <div class="hint">Áp dụng ngay cho kỳ hiện tại, mọi người trong nhà đều thấy tỷ lệ mới.</div>
+    <button class="btn-save-ratio" id="btnSaveRatio" onclick="saveRatio()" type="button" style="margin-top:8px;">💾 Lưu tỷ lệ</button>
+  </div>
+
   <button class="btn-reset" id="btnResetPeriod" onclick="resetPeriod()" type="button">✅ Đã thanh toán — Chốt & Reset kỳ mới</button>
 </div>
 
@@ -182,10 +206,10 @@
 
   <div class="settle-divider"></div>
 
-  <div class="settle-subtitle">Đối chiếu phần đóng góp của Linh (20%)</div>
+  <div class="settle-subtitle" id="settleSubtitle">Đối chiếu phần Linh đã tự chi đi chợ (20%)</div>
   <div class="settle-rows">
-    <div class="settle-row"><span>Linh đã đóng góp kỳ này</span><b id="settleLinhIn">0 ₫</b></div>
-    <div class="settle-row"><span>Linh cần đóng theo tỷ lệ (20%)</span><b id="settleLinhNeed">0 ₫</b></div>
+    <div class="settle-row"><span>Linh đã tự chi đi chợ kỳ này</span><b id="settleLinhIn">0 ₫</b></div>
+    <div class="settle-row"><span>Linh cần chịu theo tỷ lệ <span id="settleLinhPctLabel">(20%)</span></span><b id="settleLinhNeed">0 ₫</b></div>
   </div>
 
   <div class="settle-result" id="settleResult">Đã cân bằng — không ai cần trả ai</div>
@@ -207,10 +231,31 @@ const CONFIG = {
   SECRET_KEY: 'giadinh2026' // đổi thành mã riêng của gia đình bạn, phải khớp với SECRET_KEY trong Code.gs
 };
 
-let state = { transactions: [], periods: [] };
+let state = { transactions: [], periods: [], monthlyByPerson: {}, config: { myRatioPercent: 80 } };
 let curType = 'expense';
 
+// Thứ tự cố định hiển thị thành viên, khớp với dropdown "Người thực hiện"
+const FIXED_MEMBERS = ['Mẹ Hà', 'Loan', 'Linh', 'My'];
+
 const fmt = n => Number(n || 0).toLocaleString('vi-VN') + ' ₫';
+
+// Định dạng ngày DD/MM/YYYY, chịu được cả 'yyyy-MM-dd' lẫn chuỗi datetime đầy đủ
+function formatDateVN(dateStr){
+  if (!dateStr) return '';
+  const datePart = String(dateStr).split('T')[0];
+  const [y, m, d] = datePart.split('-');
+  if (!y || !m || !d) return String(dateStr);
+  return `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
+}
+
+function toggleNote(id){
+  const el = document.getElementById('note-' + id);
+  if (el) el.classList.toggle('expanded');
+}
+
+function toggleRatioEditor(){
+  document.getElementById('ratioEditor').classList.toggle('show');
+}
 
 function showBanner(msg, isError){
   const b = document.getElementById('banner');
@@ -262,6 +307,41 @@ function formatMoney(el){
   el.value = raw ? Number(raw).toLocaleString('vi-VN') : '';
 }
 
+function applyServerData(data){
+  state.transactions = data.transactions || [];
+  state.periods = data.periods || [];
+  state.monthlyByPerson = data.monthlyByPerson || {};
+  state.config = data.config || { myRatioPercent: 80 };
+}
+
+function updateRatioPreview(){
+  const my = Math.min(99, Math.max(1, Number(document.getElementById('ratioMyInput').value) || 80));
+  document.getElementById('ratioLinhPreview').textContent = 100 - my;
+}
+
+async function saveRatio(){
+  const my = Number(document.getElementById('ratioMyInput').value);
+  if (!(my > 0 && my < 100)){
+    showBanner('⚠️ Tỷ lệ My phải từ 1 đến 99.', true);
+    return;
+  }
+  const btn = document.getElementById('btnSaveRatio');
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="inline-spinner"></span>Đang lưu...';
+  try {
+    const result = await apiPost({ action: 'setRatio', data: { myRatioPercent: my } });
+    applyServerData(result.data);
+    hideBanner();
+    render();
+  } catch (err) {
+    showBanner('⚠️ Lưu tỷ lệ thất bại. Thử lại. (' + err.message + ')', true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+  }
+}
+
 async function loadData(){
   if (!isConfigured()){
     showLoading(false);
@@ -271,8 +351,7 @@ async function loadData(){
   showLoading(true);
   try {
     const data = await apiGet();
-    state.transactions = data.transactions || [];
-    state.periods = data.periods || [];
+    applyServerData(data);
     hideBanner();
     render();
   } catch (err) {
@@ -303,8 +382,7 @@ async function addTx(){
 
   try {
     const result = await apiPost({ action: 'addTx', data: { type: curType, who, amount, note, date } });
-    state.transactions = result.data.transactions;
-    state.periods = result.data.periods;
+    applyServerData(result.data);
     document.getElementById('amount').value = '';
     document.getElementById('note').value = '';
     hideBanner();
@@ -323,8 +401,7 @@ async function delTx(id){
   setButtonsDisabled(true);
   try {
     const result = await apiPost({ action: 'deleteTx', id });
-    state.transactions = result.data.transactions;
-    state.periods = result.data.periods;
+    applyServerData(result.data);
     hideBanner();
     render();
   } catch (err) {
@@ -340,11 +417,12 @@ async function resetPeriod(){
 
   const out = state.transactions.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
   const inn = state.transactions.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
-  const my = Math.round(out * 0.8);
-  const linh = Math.round(out * 0.2);
+  const myRatio = (state.config.myRatioPercent || 80) / 100;
+  const my = Math.round(out * myRatio);
+  const linh = out - my;
   const carry = inn - out;
 
-  const msg = `Chốt kỳ này?\n\nTổng chi: ${fmt(out)}\nMy (80%): ${fmt(my)}\nLinh (20%): ${fmt(linh)}\n\nSố dư còn lại ${fmt(carry)} sẽ chuyển sang kỳ mới.`;
+  const msg = `Chốt kỳ này?\n\nTổng chi: ${fmt(out)}\nMy (${state.config.myRatioPercent}%): ${fmt(my)}\nLinh (${100 - state.config.myRatioPercent}%): ${fmt(linh)}\n\nSố dư còn lại ${fmt(carry)} sẽ chuyển sang kỳ mới.`;
   if (!confirm(msg)) return;
 
   const btn = document.getElementById('btnResetPeriod');
@@ -354,8 +432,7 @@ async function resetPeriod(){
 
   try {
     const result = await apiPost({ action: 'closePeriod' });
-    state.transactions = result.data.transactions;
-    state.periods = result.data.periods;
+    applyServerData(result.data);
     hideBanner();
     render();
   } catch (err) {
@@ -371,12 +448,14 @@ function render(){
   const out = txs.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
   const inn = txs.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
   const bal = inn - out;
+  const myRatioPercent = state.config.myRatioPercent || 80;
 
   const balEl = document.getElementById('balance');
   balEl.textContent = fmt(bal);
   balEl.className = 'amount' + (bal < 0 ? ' negative' : bal < 300000 ? ' low' : '');
   document.getElementById('totalIn').textContent = fmt(inn);
   document.getElementById('totalOut').textContent = fmt(out);
+  document.getElementById('subtitle').textContent = `Quỹ chung gia đình — My ${myRatioPercent}% · Linh ${100 - myRatioPercent}%`;
 
   // Bảng giao dịch
   const list = document.getElementById('txList');
@@ -385,41 +464,60 @@ function render(){
       <div class="icon">${t.type === 'expense' ? '🧺' : '💰'}</div>
       <div class="info">
         <div class="who">${t.who}</div>
-        <div class="note">${t.note || (t.type === 'income' ? 'Đóng quỹ' : 'Đi chợ')}</div>
-        <div class="date">${String(t.date).split('-').reverse().join('/')}</div>
+        <div class="note" id="note-${t.id}">${t.note || (t.type === 'income' ? 'Đóng quỹ' : 'Đi chợ')}</div>
+        <div class="date">${formatDateVN(t.date)}</div>
       </div>
       <div class="amt">${t.type === 'expense' ? '−' : '+'}${fmt(t.amount)}</div>
-      <button class="del" onclick="delTx('${t.id}')" title="Xóa">🗑</button>
+      <div class="actions">
+        <button class="detail-btn" onclick="toggleNote('${t.id}')" title="Xem đầy đủ ghi chú">🔍</button>
+        <button class="del" onclick="delTx('${t.id}')" title="Xóa">🗑</button>
+      </div>
     </div>`).join('') : '<div class="empty">Chưa có giao dịch nào</div>';
 
-  // Thống kê theo người
-  const byWho = {};
-  txs.filter(t => t.type === 'expense').forEach(t => { byWho[t.who] = (byWho[t.who] || 0) + Number(t.amount); });
+  // Thống kê theo người TRONG THÁNG hiện tại (server tính từ Archive + kỳ hiện tại, không phụ thuộc việc chốt kỳ)
+  const now = new Date();
+  document.getElementById('statMonthLabel').textContent = `(tháng ${now.getMonth() + 1}/${now.getFullYear()})`;
+  const monthly = state.monthlyByPerson || {};
   const stat = document.getElementById('statList');
-  const names = Object.keys(byWho);
-  stat.innerHTML = names.length ? names.map(n => `<div class="stat-row"><span>${n}</span><b>${fmt(byWho[n])}</b></div>`).join('') : '<div class="empty">Chưa có dữ liệu</div>';
+  stat.innerHTML = FIXED_MEMBERS.map(n => `<div class="stat-row"><span>${n}</span><b>${fmt(monthly[n] || 0)}</b></div>`).join('');
 
-  // Chia 8-2
-  const requiredMy = Math.round(out * 0.8);
+  // Chia theo tỷ lệ có thể tuỳ chỉnh
+  const requiredMy = Math.round(out * (myRatioPercent / 100));
   const requiredLinh = out - requiredMy; // đảm bảo tổng đúng bằng out, tránh lệch do làm tròn
   document.getElementById('splitTotal').textContent = fmt(out);
   document.getElementById('splitMy').textContent = fmt(requiredMy);
   document.getElementById('splitLinh').textContent = fmt(requiredLinh);
+  document.getElementById('splitPctMy').textContent = myRatioPercent + '%';
+  document.getElementById('splitPctLinh').textContent = (100 - myRatioPercent) + '%';
+  document.getElementById('splitBarMy').style.width = myRatioPercent + '%';
+  document.getElementById('splitBarLinh').style.width = (100 - myRatioPercent) + '%';
+  if (document.activeElement?.id !== 'ratioMyInput') {
+    document.getElementById('ratioMyInput').value = myRatioPercent;
+    document.getElementById('ratioLinhPreview').textContent = 100 - myRatioPercent;
+  }
 
-  // Ai cần trả ai
+  // Ai cần trả ai (dựa trên chi tiêu thực tế của kỳ này, không dùng đóng góp)
+  const byWho = {};
+  txs.filter(t => t.type === 'expense').forEach(t => { byWho[t.who] = (byWho[t.who] || 0) + Number(t.amount); });
+  const spentNames = Object.keys(byWho);
+
   // 1) Quỹ cần hoàn lại cho từng người đã trực tiếp đi chợ (bất kể thuộc nhóm My hay Linh)
   const reimburseEl = document.getElementById('reimburseList');
-  reimburseEl.innerHTML = names.length
-    ? names.map(n => `<div class="settle-row"><span>${n}</span><b>${fmt(byWho[n])}</b></div>`).join('')
+  reimburseEl.innerHTML = spentNames.length
+    ? spentNames.map(n => `<div class="settle-row"><span>${n}</span><b>${fmt(byWho[n])}</b></div>`).join('')
     : '<div class="empty">Chưa có ai chi tiêu</div>';
 
-  // 2) Mẹ Hà + Loan + My được gộp chung là "My" (bên chịu 80%).
-  //    Chỉ cần đối chiếu phần Linh đã đóng góp với phần Linh phải chịu (20%) —
-  //    lệch bao nhiêu thì đó là số tiền cần chuyển giữa My và Linh để hoàn tiền cho người đã đi chợ.
-  const contributedLinh = txs.filter(t => t.type === 'income' && t.who === 'Linh').reduce((s, t) => s + Number(t.amount), 0);
-  const settle = contributedLinh - requiredLinh; // dương: Linh đóng dư -> My cần trả lại Linh; âm: Linh đóng thiếu -> Linh cần trả My
+  // 2) Mẹ Hà + Loan + My được gộp chung là "My" (bên chịu myRatioPercent%).
+  //    "Đóng góp" (income) chỉ ảnh hưởng Số dư quỹ/tiết kiệm chung, KHÔNG dùng ở đây.
+  //    Ai cần trả ai chỉ dựa vào ai đã TỰ CHI TIỀN đi chợ so với phần mình phải chịu theo tỷ lệ —
+  //    vì vậy nếu Linh là người đi chợ, Linh sẽ là người được hoàn lại phần chi vượt tỷ lệ của mình.
+  const expenseLinh = byWho['Linh'] || 0;
+  const settle = expenseLinh - requiredLinh; // dương: Linh tự chi vượt phần mình -> My cần trả lại Linh; âm: Linh tự chi thiếu -> Linh cần trả My
+  const linhPct = 100 - myRatioPercent;
 
-  document.getElementById('settleLinhIn').textContent = fmt(contributedLinh);
+  document.getElementById('settleSubtitle').textContent = `Đối chiếu phần Linh đã tự chi đi chợ (${linhPct}%)`;
+  document.getElementById('settleLinhPctLabel').textContent = `(${linhPct}%)`;
+  document.getElementById('settleLinhIn').textContent = fmt(expenseLinh);
   document.getElementById('settleLinhNeed').textContent = fmt(requiredLinh);
 
   const settleEl = document.getElementById('settleResult');
@@ -437,11 +535,14 @@ function render(){
   // Lịch sử kỳ
   const pl = document.getElementById('periodList');
   const periods = state.periods;
-  pl.innerHTML = periods.length ? periods.map(p => `
+  pl.innerHTML = periods.length ? periods.map(p => {
+    const ratio = p.my_ratio_percent || 80;
+    return `
     <div class="period">
-      <div class="head"><span>Chốt ngày ${String(p.closed_date).split('-').reverse().join('/')}</span><span>Chi: ${fmt(p.total_out)}</span></div>
-      <div class="detail">${p.tx_count} giao dịch · My trả ${fmt(p.my_share)} · Linh trả ${fmt(p.linh_share)}</div>
-    </div>`).join('') : '<div class="empty">Chưa có kỳ nào được chốt</div>';
+      <div class="head"><span>Chốt ngày ${formatDateVN(p.closed_date)}</span><span>Chi: ${fmt(p.total_out)}</span></div>
+      <div class="detail">${p.tx_count} giao dịch · My (${ratio}%) trả ${fmt(p.my_share)} · Linh (${100 - ratio}%) trả ${fmt(p.linh_share)}</div>
+    </div>`;
+  }).join('') : '<div class="empty">Chưa có kỳ nào được chốt</div>';
 }
 
 document.getElementById('date').value = new Date().toISOString().slice(0, 10);
