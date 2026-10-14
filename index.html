@@ -2,551 +2,624 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2e7d32">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quỹ Đi Chợ">
 <title>Quỹ Đi Chợ 🛒</title>
 <style>
-  :root{
-    --green:#2e7d32; --green-light:#e8f5e9;
-    --red:#c62828; --red-light:#ffebee;
-    --blue:#1565c0; --blue-light:#e3f2fd;
-    --bg:#f6f7f4; --card:#fff; --border:#e0e0e0; --text:#212121; --muted:#757575;
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--text); padding:16px; max-width:520px; margin:0 auto;}
-  h1{font-size:1.4rem; text-align:center; margin-bottom:4px;}
-  .subtitle{text-align:center; color:var(--muted); font-size:.85rem; margin-bottom:16px;}
-  .card{background:var(--card); border-radius:14px; padding:16px; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,.06);}
-  .card h2{font-size:1rem; margin-bottom:12px; display:flex; align-items:center; gap:6px;}
+:root{
+  --green:#2e7d32;--green-light:#e8f5e9;--red:#c62828;--red-light:#ffebee;
+  --blue:#1565c0;--blue-light:#e3f2fd;--amber:#f9a825;--orange:#ef6c00;
+  --bg:#f6f7f4;--card:#fff;--field:#fff;--border:#e0e0e0;--text:#212121;--muted:#757575;
+  --purple-bg:#f3e5f5;--purple:#6a1b9a;
+}
+@media (prefers-color-scheme:dark){
+  :root{--green:#66bb6a;--green-light:#1b2e1c;--red:#ef5350;--red-light:#3a1c1c;--blue:#64b5f6;--blue-light:#16263a;
+    --bg:#121412;--card:#1c1f1c;--field:#151715;--border:#2f332f;--text:#f1f1f1;--muted:#a0a0a0;--purple-bg:#2a1d30;--purple:#ce93d8}
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',Roboto,sans-serif}
+header{position:sticky;top:0;z-index:20;background:var(--green);color:#fff;display:flex;align-items:center;gap:8px;
+  padding:calc(env(safe-area-inset-top) + 10px) 16px 10px}
+header h1{font-size:1.15rem;flex:1}
+header button{background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:999px;padding:6px 12px;font-size:.8rem}
+main{max-width:520px;margin:0 auto;padding:14px 16px calc(84px + env(safe-area-inset-bottom))}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card h2{font-size:1rem;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.card h2 small{font-weight:400;color:var(--muted);font-size:.8rem}
+.muted{color:var(--muted);font-size:.82rem}
+.empty{text-align:center;color:var(--muted);padding:20px 0;font-size:.9rem}
 
-  /* Số dư */
-  .balance{text-align:center;}
-  .balance .label{font-size:.85rem; color:var(--muted);}
-  .balance .amount{font-size:2.2rem; font-weight:700; color:var(--green); margin:4px 0;}
-  .balance .amount.low{color:#ef6c00;}
-  .balance .amount.negative{color:var(--red);}
-  .balance .sub{display:flex; justify-content:space-around; margin-top:10px; font-size:.85rem;}
-  .balance .sub .in{color:var(--green);}
-  .balance .sub .out{color:var(--red);}
-  .balance .sub b{display:block; font-size:1rem;}
+/* Số dư */
+.balance{text-align:center}
+.balance .amount{font-size:2.2rem;font-weight:700;color:var(--green);margin:4px 0}
+.balance .amount.low{color:var(--orange)}.balance .amount.negative{color:var(--red)}
+.balance .sub{display:flex;justify-content:space-around;margin-top:10px;font-size:.85rem}
+.balance .sub b{display:block;font-size:1rem}
+.in{color:var(--green)}.out{color:var(--red)}
 
-  /* Form */
-  .type-toggle{display:flex; gap:8px; margin-bottom:12px;}
-  .type-toggle button{flex:1; padding:12px; border:2px solid var(--border); border-radius:10px; background:#fff; font-size:1rem; font-weight:600; cursor:pointer;}
-  .type-toggle button.expense.active{border-color:var(--red); background:var(--red-light); color:var(--red);}
-  .type-toggle button.income.active{border-color:var(--green); background:var(--green-light); color:var(--green);}
-  label{display:block; font-size:.85rem; font-weight:600; margin:10px 0 4px;}
-  select,input[type=text],input[type=date]{width:100%; padding:12px; font-size:1.05rem; border:1.5px solid var(--border); border-radius:10px; background:#fff;}
-  input.money{font-size:1.3rem; font-weight:700; text-align:right;}
-  .btn-add{width:100%; margin-top:14px; padding:15px; font-size:1.1rem; font-weight:700; color:#fff; background:var(--green); border:none; border-radius:12px; cursor:pointer;}
-  .btn-add:active{opacity:.85;}
-  button:disabled{opacity:.55; cursor:not-allowed;}
+/* Form */
+.type-toggle{display:flex;gap:8px;margin-bottom:4px}
+.type-toggle button{flex:1;padding:12px;border:2px solid var(--border);border-radius:10px;background:var(--field);color:var(--text);font-size:1rem;font-weight:600}
+.type-toggle .expense.active{border-color:var(--red);background:var(--red-light);color:var(--red)}
+.type-toggle .income.active{border-color:var(--green);background:var(--green-light);color:var(--green)}
+label{display:block;font-size:.85rem;font-weight:600;margin:12px 0 4px}
+select,input{width:100%;padding:12px;font-size:1.05rem;border:1.5px solid var(--border);border-radius:10px;background:var(--field);color:var(--text);font-family:inherit}
+input:focus,select:focus{outline:none;border-color:var(--green)}
+input.money{font-size:1.3rem;font-weight:700;text-align:right}
+.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{border:1px solid var(--border);background:var(--field);color:var(--text);border-radius:999px;padding:5px 11px;font-size:.82rem}
+.chip.on{background:var(--green);border-color:var(--green);color:#fff}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.cat{border:1.5px solid var(--border);background:var(--field);color:var(--text);border-radius:10px;padding:7px 2px;font-size:.75rem;line-height:1.2}
+.cat b{display:block;font-size:1.25rem;font-weight:400}
+.cat.on{border-color:var(--green);background:var(--green-light);font-weight:700}
+.btn{display:block;width:100%;margin-top:14px;padding:15px;font-size:1.05rem;font-weight:700;color:#fff;background:var(--green);border:none;border-radius:12px}
+.btn:active{opacity:.85}
+.btn.ghost{background:transparent;color:var(--text);border:1.5px solid var(--border);margin-top:8px}
+.btn.danger{background:transparent;color:var(--red);border:1.5px solid var(--red);margin-top:8px}
+.btn.blue{background:var(--blue)}
+button:disabled{opacity:.55}
+.editing-flag{display:none;background:var(--blue-light);color:var(--blue);border-radius:8px;padding:8px 10px;font-size:.85rem;font-weight:600;margin-bottom:10px}
 
-  /* Bảng giao dịch */
-  .tx{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);}
-  .tx:last-child{border-bottom:none;}
-  .tx .icon{width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;}
-  .tx.expense .icon{background:var(--red-light);}
-  .tx.income .icon{background:var(--green-light);}
-  .tx .info{flex:1; min-width:0;}
-  .tx .who{font-weight:600; font-size:.95rem;}
-  .tx .note{font-size:.82rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .tx .note.expanded{white-space:normal; overflow:visible; text-overflow:unset; word-break:break-word;}
-  .tx .date{font-size:.75rem; color:var(--muted);}
-  .tx .amt{font-weight:700; white-space:nowrap;}
-  .tx.expense .amt{color:var(--red);}
-  .tx.income .amt{color:var(--green);}
-  .tx .actions{display:flex; flex-direction:column; align-items:center; gap:2px;}
-  .tx .detail-btn{border:none; background:none; color:#9aa0a6; font-size:1.05rem; cursor:pointer; padding:6px;}
-  .tx .del{border:none; background:none; color:#bbb; font-size:1.2rem; cursor:pointer; padding:6px;}
-  .empty{text-align:center; color:var(--muted); padding:20px 0; font-size:.9rem;}
+/* Giao dịch */
+.tx{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.tx:last-child{border-bottom:none}
+.tx .icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.tx.expense .icon{background:var(--red-light)}.tx.income .icon{background:var(--green-light)}
+.tx .info{flex:1;min-width:0}
+.tx .who{font-weight:600;font-size:.95rem}
+.tx .note{font-size:.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx.open .note{white-space:normal;word-break:break-word}
+.tx .date{font-size:.75rem;color:var(--muted)}
+.tx .amt{font-weight:700;white-space:nowrap;text-align:right}
+.tx.expense .amt{color:var(--red)}.tx.income .amt{color:var(--green)}
+.tx .badge{display:inline-block;font-size:.68rem;font-weight:600;background:var(--border);color:var(--muted);border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:1px}
+.day-h{display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;color:var(--muted);margin:14px 4px 6px}
 
-  /* Thống kê theo người */
-  .stat-row{display:flex; justify-content:space-between; padding:7px 0; font-size:.95rem; border-bottom:1px dashed var(--border);}
-  .stat-row:last-child{border-bottom:none;}
-  .stat-row b{color:var(--red);}
+/* Chia tiền */
+.split{background:var(--blue-light)}
+.split .total{text-align:center;font-size:.9rem;margin-bottom:10px}
+.split .total b{font-size:1.2rem;display:block}
+.split-bar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin-bottom:10px;background:var(--border)}
+.split-bar .my{background:var(--blue)}.split-bar .linh{background:var(--amber)}
+.split-cols{display:flex;gap:10px}
+.split-col{flex:1;background:var(--card);border-radius:10px;padding:10px;text-align:center}
+.split-col .name{font-size:.85rem;font-weight:600}
+.split-col .val{font-size:1.15rem;font-weight:700;margin-top:4px}
+.split-col.my .val{color:var(--blue)}.split-col.linh .val{color:var(--amber)}
+.link-btn{background:none;border:none;color:var(--blue);font-size:.82rem;font-weight:600;text-decoration:underline;padding:10px 0 0}
+.ratio-editor{display:none;background:var(--card);border-radius:10px;padding:12px;margin-top:8px}
+.ratio-editor.show{display:block}
+.ratio-editor .row{align-items:center}
+.ratio-editor input{width:80px;flex:none;text-align:center;padding:8px}
+.settle-row,.stat-row{display:flex;justify-content:space-between;padding:7px 0;font-size:.9rem;border-bottom:1px dashed var(--border)}
+.settle-row:last-child,.stat-row:last-child{border-bottom:none}
+.settle-sub{font-size:.8rem;font-weight:600;color:var(--muted);margin:4px 0 6px}
+.settle-result{text-align:center;font-size:1.05rem;font-weight:700;padding:12px;border-radius:10px;background:var(--purple-bg);color:var(--purple);margin-top:12px}
+.settle-result.balanced{background:var(--green-light);color:var(--green)}
+.period{padding:10px 0;border-bottom:1px solid var(--border);font-size:.88rem}
+.period:last-child{border-bottom:none}
+.period .head{display:flex;justify-content:space-between;font-weight:600}
 
-  /* Chia 8-2 */
-  .split{background:var(--blue-light);}
-  .split .total{text-align:center; font-size:.9rem; margin-bottom:10px;}
-  .split .total b{font-size:1.2rem; display:block;}
-  .split-bar{display:flex; height:14px; border-radius:7px; overflow:hidden; margin-bottom:10px; background:#ddd;}
-  .split-bar .my{background:var(--blue);}
-  .split-bar .linh{background:#f9a825;}
-  .split-cols{display:flex; gap:10px;}
-  .split-col{flex:1; background:#fff; border-radius:10px; padding:10px; text-align:center;}
-  .split-col .name{font-size:.85rem; font-weight:600;}
-  .split-col .pct{font-size:.75rem; color:var(--muted);}
-  .split-col .val{font-size:1.15rem; font-weight:700; margin-top:4px;}
-  .split-col.my .val{color:var(--blue);}
-  .split-col.linh .val{color:#f9a825;}
-  .btn-reset{width:100%; margin-top:12px; padding:13px; font-size:1rem; font-weight:700; color:#fff; background:var(--blue); border:none; border-radius:12px; cursor:pointer;}
+/* Lịch sử & thống kê */
+.month{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.month button{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:10px;width:42px;height:42px;font-size:1.2rem}
+.month strong{font-size:1.05rem}
+.big{font-size:1.9rem;font-weight:800;color:var(--red)}
+.bar{height:8px;border-radius:99px;background:var(--border);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--green)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kv div{background:var(--bg);border-radius:10px;padding:10px;font-size:.8rem;color:var(--muted)}
+.kv b{display:block;font-size:1.05rem;color:var(--text)}
+.catrow{margin:10px 0}
+.catrow .top{display:flex;justify-content:space-between;font-size:.9rem}
+.days{display:flex;align-items:flex-end;gap:2px;height:90px;margin-top:10px}
+.days i{flex:1;background:var(--green);border-radius:3px 3px 0 0;min-height:2px}
+.days i.zero{background:var(--border)}
 
-  /* Đổi tỷ lệ chia */
-  .ratio-toggle{background:none; border:none; color:var(--blue); font-size:.8rem; font-weight:600; text-decoration:underline; cursor:pointer; padding:0; margin-bottom:2px;}
-  .ratio-editor{display:none; background:#fff; border-radius:10px; padding:12px; margin-bottom:10px;}
-  .ratio-editor.show{display:block;}
-  .ratio-editor .row{display:flex; align-items:center; gap:8px;}
-  .ratio-editor input[type=number]{width:70px; padding:8px; font-size:1rem; border:1.5px solid var(--border); border-radius:8px; text-align:center;}
-  .ratio-editor .btn-save-ratio{padding:8px 14px; font-size:.9rem; font-weight:700; color:#fff; background:var(--blue); border:none; border-radius:8px; cursor:pointer;}
-  .ratio-editor .hint{font-size:.75rem; color:var(--muted); margin-top:6px;}
-
-  /* Ai cần trả ai */
-  .settle-subtitle{font-size:.8rem; font-weight:600; color:var(--muted); margin-bottom:6px;}
-  .settle-row{display:flex; justify-content:space-between; padding:6px 0; font-size:.88rem; border-bottom:1px dashed var(--border);}
-  .settle-row:last-child{border-bottom:none;}
-  .settle-rows{margin-bottom:10px;}
-  .settle-divider{height:1px; background:var(--border); margin:12px 0;}
-  .settle-result{text-align:center; font-size:1.05rem; font-weight:700; padding:12px; border-radius:10px; background:#f3e5f5; color:#6a1b9a;}
-  .settle-result.balanced{background:var(--green-light); color:var(--green);}
-
-  /* Lịch sử kỳ */
-  .period{padding:10px 0; border-bottom:1px solid var(--border); font-size:.88rem;}
-  .period:last-child{border-bottom:none;}
-  .period .head{display:flex; justify-content:space-between; font-weight:600;}
-  .period .detail{color:var(--muted); font-size:.8rem; margin-top:2px;}
-
-  /* Trạng thái tải / lỗi */
-  .banner{position:fixed; left:12px; right:12px; top:12px; max-width:496px; margin:0 auto; z-index:50;
-    background:#fff3e0; color:#e65100; border:1px solid #ffcc80; border-radius:10px; padding:10px 14px; font-size:.85rem;
-    box-shadow:0 2px 8px rgba(0,0,0,.12); display:none;}
-  .banner.show{display:block;}
-  .banner.err{background:var(--red-light); color:var(--red); border-color:#ef9a9a;}
-  .loading-overlay{position:fixed; inset:0; background:rgba(255,255,255,.7); display:flex; align-items:center; justify-content:center; z-index:100; flex-direction:column; gap:10px;}
-  .loading-overlay.hide{display:none;}
-  .spinner{width:34px; height:34px; border:4px solid var(--border); border-top-color:var(--green); border-radius:50%; animation:spin .8s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-  .loading-text{font-size:.85rem; color:var(--muted);}
-  .inline-spinner{display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.5); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; margin-right:6px; vertical-align:-2px;}
+/* Điều hướng & thông báo */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;color:var(--muted);padding:8px 0 10px;font-size:.7rem}
+nav button b{display:block;font-size:1.25rem;font-weight:400}
+nav button.on{color:var(--green);font-weight:700}
+.banner{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 56px);max-width:496px;margin:0 auto;z-index:50;
+  background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:10px;padding:10px 14px;font-size:.85rem;box-shadow:0 2px 8px rgba(0,0,0,.12);display:none}
+.banner.show{display:block}.banner.err{background:#ffebee;color:#c62828;border-color:#ef9a9a}
+.banner.ok{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:-2px}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
+<header>
+  <h1>🛒 Quỹ Đi Chợ</h1>
+  <button id="btnRefresh" onclick="loadData(true)">↻ Tải lại</button>
+</header>
+<div class="banner" id="banner" onclick="hideBanner()"></div>
 
-<div class="banner" id="banner"></div>
-
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-text">Đang tải dữ liệu quỹ...</div>
-</div>
-
-<h1>🛒 Quỹ Đi Chợ</h1>
-<p class="subtitle" id="subtitle">Quỹ chung gia đình — My 80% · Linh 20%</p>
-
-<!-- 1. SỐ DƯ QUỸ -->
-<div class="card balance">
-  <div class="label">Số dư quỹ hiện tại</div>
-  <div class="amount" id="balance">0 ₫</div>
-  <div class="sub">
-    <div class="in">Đã đóng góp<b id="totalIn">0 ₫</b></div>
-    <div class="out">Đã chi tiêu<b id="totalOut">0 ₫</b></div>
-  </div>
-</div>
-
-<!-- 2. FORM NHẬP -->
-<div class="card">
-  <h2>✏️ Nhập giao dịch</h2>
-  <div class="type-toggle">
-    <button class="expense active" id="btnExpense" onclick="setType('expense')" type="button">🧺 Chi đi chợ</button>
-    <button class="income" id="btnIncome" onclick="setType('income')" type="button">💰 Đóng quỹ</button>
-  </div>
-  <label>Người thực hiện</label>
-  <select id="who">
-    <option>Mẹ Hà</option><option>Loan</option><option>Linh</option><option>My</option>
-  </select>
-  <label>Số tiền (₫)</label>
-  <input class="money" id="amount" type="text" inputmode="numeric" placeholder="0" oninput="formatMoney(this)">
-  <label>Ghi chú</label>
-  <input id="note" type="text" placeholder="VD: rau, thịt, trứng...">
-  <label>Ngày</label>
-  <input id="date" type="date">
-  <button class="btn-add" id="btnAdd" onclick="addTx()" type="button">＋ Thêm giao dịch</button>
-</div>
-
-<!-- 3. BẢNG GIAO DỊCH -->
-<div class="card">
-  <h2>📋 Giao dịch kỳ này</h2>
-  <div id="txList"><div class="empty">Chưa có giao dịch nào</div></div>
-</div>
-
-<!-- Thống kê chi theo người -->
-<div class="card">
-  <h2>📊 Chi tiêu theo người <span id="statMonthLabel" style="font-weight:400; color:var(--muted); font-size:.8rem;"></span></h2>
-  <div id="statList"><div class="empty">Chưa có dữ liệu</div></div>
-</div>
-
-<!-- 4. CHIA 8-2 -->
-<div class="card split">
-  <h2>🤝 Chia phần My & Linh</h2>
-  <div class="total">Tổng chi tiêu kỳ này<b id="splitTotal">0 ₫</b></div>
-  <div class="split-bar"><div class="my" id="splitBarMy" style="width:80%"></div><div class="linh" id="splitBarLinh" style="width:20%"></div></div>
-  <div class="split-cols">
-    <div class="split-col my"><div class="name">My</div><div class="pct" id="splitPctMy">80%</div><div class="val" id="splitMy">0 ₫</div></div>
-    <div class="split-col linh"><div class="name">Linh</div><div class="pct" id="splitPctLinh">20%</div><div class="val" id="splitLinh">0 ₫</div></div>
-  </div>
-
-  <button class="ratio-toggle" onclick="toggleRatioEditor()" type="button">⚙️ Đổi tỷ lệ chia cho kỳ này</button>
-  <div class="ratio-editor" id="ratioEditor">
-    <div class="row">
-      <span>My</span>
-      <input type="number" id="ratioMyInput" min="1" max="99" value="80" oninput="updateRatioPreview()">
-      <span>% — Linh <b id="ratioLinhPreview">20</b>%</span>
+<main>
+<!-- ============ TAB QUỸ ============ -->
+<section class="tab on" id="tab-home">
+  <div class="card balance">
+    <div class="muted">Số dư quỹ kỳ này</div>
+    <div class="amount" id="balance">—</div>
+    <div class="sub">
+      <div class="in">Đã đóng góp<b id="totalIn">0 ₫</b></div>
+      <div class="out">Đã chi tiêu<b id="totalOut">0 ₫</b></div>
     </div>
-    <div class="hint">Áp dụng ngay cho kỳ hiện tại, mọi người trong nhà đều thấy tỷ lệ mới.</div>
-    <button class="btn-save-ratio" id="btnSaveRatio" onclick="saveRatio()" type="button" style="margin-top:8px;">💾 Lưu tỷ lệ</button>
   </div>
 
-  <button class="btn-reset" id="btnResetPeriod" onclick="resetPeriod()" type="button">✅ Đã thanh toán — Chốt & Reset kỳ mới</button>
-</div>
+  <div class="card" id="formCard">
+    <h2>✏️ Nhập giao dịch</h2>
+    <div class="editing-flag" id="editingFlag">Đang sửa giao dịch</div>
+    <div class="type-toggle">
+      <button class="expense active" id="btnExpense" onclick="setType('expense')" type="button">🧺 Chi đi chợ</button>
+      <button class="income" id="btnIncome" onclick="setType('income')" type="button">💰 Đóng quỹ</button>
+    </div>
+    <label>Người thực hiện</label>
+    <select id="who"></select>
+    <label>Số tiền (₫)</label>
+    <input class="money" id="amount" type="text" inputmode="numeric" placeholder="0" oninput="formatMoney(this)">
+    <div class="chips" id="amountChips"></div>
+    <label>Ghi chú</label>
+    <input id="note" type="text" placeholder="VD: rau, thịt, trứng..." oninput="autoCat()">
+    <div id="catBlock">
+      <label>Loại <span class="muted" style="font-weight:400">(tự đoán theo ghi chú, bấm để đổi)</span></label>
+      <div class="cats" id="catPicker"></div>
+    </div>
+    <label>Ngày</label>
+    <input id="date" type="date">
+    <button class="btn" id="btnSave" onclick="saveTx()" type="button">＋ Thêm giao dịch</button>
+    <div id="editBtns" style="display:none">
+      <button class="btn ghost" onclick="resetForm()" type="button">Huỷ sửa</button>
+      <button class="btn danger" id="btnDelete" onclick="delTx()" type="button">🗑 Xoá giao dịch này</button>
+    </div>
+  </div>
 
-<!-- 4b. AI CẦN TRẢ AI -->
-<div class="card">
-  <h2>💸 Ai cần trả ai</h2>
+  <div class="card">
+    <h2>📋 Giao dịch kỳ này <small>· bấm để sửa</small></h2>
+    <div id="txList"><div class="empty">Chưa có giao dịch nào</div></div>
+  </div>
+</section>
 
-  <div class="settle-subtitle">Quỹ cần hoàn lại cho người đã đi chợ</div>
-  <div id="reimburseList" class="settle-rows"><div class="empty">Chưa có ai chi tiêu</div></div>
+<!-- ============ TAB CHIA TIỀN ============ -->
+<section class="tab" id="tab-split">
+  <div class="card split">
+    <h2>🤝 Chia phần My &amp; Linh</h2>
+    <div class="total">Tổng chi tiêu kỳ này<b id="splitTotal">0 ₫</b></div>
+    <div class="split-bar"><div class="my" id="splitBarMy"></div><div class="linh" id="splitBarLinh"></div></div>
+    <div class="split-cols">
+      <div class="split-col my"><div class="name">My</div><div class="muted" id="splitPctMy"></div><div class="val" id="splitMy">0 ₫</div></div>
+      <div class="split-col linh"><div class="name">Linh</div><div class="muted" id="splitPctLinh"></div><div class="val" id="splitLinh">0 ₫</div></div>
+    </div>
+    <button class="link-btn" onclick="document.getElementById('ratioEditor').classList.toggle('show')" type="button">⚙️ Đổi tỷ lệ chia cho kỳ này</button>
+    <div class="ratio-editor" id="ratioEditor">
+      <div class="row">
+        <span style="flex:none">My</span>
+        <input type="number" id="ratioMyInput" min="1" max="99" oninput="document.getElementById('ratioLinhPreview').textContent = 100 - (Number(this.value) || 0)">
+        <span>% — Linh <b id="ratioLinhPreview"></b>%</span>
+      </div>
+      <p class="muted" style="margin-top:6px">Áp dụng ngay cho kỳ hiện tại, cả nhà đều thấy.</p>
+      <button class="btn blue" id="btnSaveRatio" onclick="saveRatio()" type="button">💾 Lưu tỷ lệ</button>
+    </div>
+    <button class="btn blue" id="btnClose" onclick="closePeriod()" type="button">✅ Đã thanh toán — Chốt &amp; Reset kỳ mới</button>
+  </div>
 
-  <div class="settle-divider"></div>
-
-  <div class="settle-subtitle" id="settleSubtitle">Đối chiếu phần Linh đã tự chi đi chợ (20%)</div>
-  <div class="settle-rows">
+  <div class="card">
+    <h2>💸 Ai cần trả ai</h2>
+    <div class="settle-sub">Quỹ cần hoàn lại cho người đã đi chợ</div>
+    <div id="reimburseList"></div>
+    <div class="settle-sub" style="margin-top:14px" id="settleSub"></div>
     <div class="settle-row"><span>Linh đã tự chi đi chợ kỳ này</span><b id="settleLinhIn">0 ₫</b></div>
-    <div class="settle-row"><span>Linh cần chịu theo tỷ lệ <span id="settleLinhPctLabel">(20%)</span></span><b id="settleLinhNeed">0 ₫</b></div>
+    <div class="settle-row"><span>Linh cần chịu theo tỷ lệ</span><b id="settleLinhNeed">0 ₫</b></div>
+    <div class="settle-result" id="settleResult"></div>
   </div>
 
-  <div class="settle-result" id="settleResult">Đã cân bằng — không ai cần trả ai</div>
-</div>
+  <div class="card">
+    <h2>🗂️ Các kỳ đã chốt</h2>
+    <div id="periodList"></div>
+  </div>
+</section>
 
-<!-- 5. LỊCH SỬ KỲ -->
-<div class="card">
-  <h2>🗂️ Lịch sử các kỳ đã chốt</h2>
-  <div id="periodList"><div class="empty">Chưa có kỳ nào được chốt</div></div>
-</div>
+<!-- ============ TAB LỊCH SỬ ============ -->
+<section class="tab" id="tab-history">
+  <div class="month"><button onclick="shiftMonth(-1)">‹</button><strong class="mLabel"></strong><button onclick="shiftMonth(1)">›</button></div>
+  <input id="search" placeholder="🔍 Tìm theo ghi chú, người..." oninput="renderHistory()">
+  <div class="chips" id="whoFilter"></div>
+  <div id="historyList"></div>
+</section>
+
+<!-- ============ TAB THỐNG KÊ ============ -->
+<section class="tab" id="tab-stats">
+  <div class="month"><button onclick="shiftMonth(-1)">‹</button><strong class="mLabel"></strong><button onclick="shiftMonth(1)">›</button></div>
+  <div id="statsBody"></div>
+  <div class="card">
+    <h2>🎯 Ngân sách đi chợ / tháng</h2>
+    <div class="row">
+      <input id="budgetInput" type="text" inputmode="numeric" placeholder="VD: 8.000.000" oninput="formatMoney(this)">
+      <button class="btn" style="margin:0;flex:none;width:auto;padding:0 18px" id="btnBudget" onclick="saveBudget()" type="button">Lưu</button>
+    </div>
+  </div>
+</section>
+</main>
+
+<nav>
+  <button class="on" data-tab="home"><b>🏠</b>Quỹ</button>
+  <button data-tab="split"><b>🤝</b>Chia tiền</button>
+  <button data-tab="history"><b>📋</b>Lịch sử</button>
+  <button data-tab="stats"><b>📊</b>Thống kê</button>
+</nav>
 
 <script>
 // ============================================================
-// CẤU HÌNH — dán URL Web App (Apps Script) và mã bí mật vào đây
-// Xem hướng dẫn chi tiết trong file SETUP.md
+// CẤU HÌNH — URL Web App (Apps Script). Giữ nguyên nếu bạn
+// deploy "New version" trên deployment cũ (xem SETUP.md).
 // ============================================================
-const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbz2HDWJKyusZtIxNcF8ack2dg5wKTbJvDFlkIYKP2WHxfdk_YeBg9F8-jKUwUZtua1q/exec',
-  SECRET_KEY: 'giadinh2026' // đổi thành mã riêng của gia đình bạn, phải khớp với SECRET_KEY trong Code.gs
+const API_URL = 'https://script.google.com/macros/s/AKfycbz2HDWJKyusZtIxNcF8ack2dg5wKTbJvDFlkIYKP2WHxfdk_YeBg9F8-jKUwUZtua1q/exec';
+
+const CATS = [
+  {id:'tonghop', name:'Đi chợ tổng hợp', icon:'🧺'},
+  {id:'rau',     name:'Rau củ',          icon:'🥬'},
+  {id:'thit',    name:'Thịt',            icon:'🥩'},
+  {id:'ca',      name:'Cá, hải sản',     icon:'🐟'},
+  {id:'trung',   name:'Trứng, sữa, đậu', icon:'🥚'},
+  {id:'qua',     name:'Trái cây',        icon:'🍊'},
+  {id:'kho',     name:'Gạo, đồ khô',     icon:'🍚'},
+  {id:'giavi',   name:'Gia vị',          icon:'🧂'},
+  {id:'khac',    name:'Khác',            icon:'🛒'},
+];
+const CAT_KW = {
+  rau:['rau','củ','cải','bí','bầu','mướp','khoai','cà chua','cà rốt','cà tím','hành','tỏi','nấm','đậu que','đậu bắp','giá','măng','su su','dưa leo','xà lách','ngò','rau thơm','sả','gừng','ớt'],
+  thit:['thịt','heo','lợn','bò','gà','vịt','sườn','ba chỉ','xương','giò','chả','nạc','xúc xích','lạp xưởng'],
+  ca:['cá','tôm','mực','cua','ghẹ','nghêu','sò','ốc','hến','hải sản','tép'],
+  trung:['trứng','sữa','đậu khuôn','đậu hũ','đậu phụ','phô mai','sữa chua','đậu nành'],
+  qua:['trái cây','cam','chuối','táo','xoài','dưa hấu','nho','bưởi','ổi','thanh long','lê','quýt','mận','dứa','đu đủ','mãng cầu','chôm chôm','sầu riêng','bơ'],
+  kho:['gạo','mì','bún','phở','miến','nui','bánh mì','bánh phở','đồ khô','ngũ cốc'],
+  giavi:['muối','đường','nước mắm','dầu ăn','tiêu','bột ngọt','hạt nêm','nước tương','xì dầu','giấm','tương','gia vị','mắm'],
 };
+const CAT_RE = Object.fromEntries(Object.entries(CAT_KW).map(([c, ks]) =>
+  [c, new RegExp('(^|[^\\p{L}])(' + ks.join('|') + ')($|[^\\p{L}])', 'u')]));
+function guessCat(text){
+  const s = String(text || '').toLowerCase().normalize('NFC');
+  const hits = Object.keys(CAT_RE).filter(c => CAT_RE[c].test(s));
+  if (!s.trim() || (!hits.length && /si[eê]u th[iị]|king ?food|lotte|co\.?op|winmart|vinmart|b[aá]ch h[oó]a|aeon|mega|emart|chợ/u.test(s))) return 'tonghop';
+  return hits.length === 1 ? hits[0] : hits.length > 1 ? 'tonghop' : 'khac';
+}
+const catOf = id => CATS.find(c => c.id === id) || CATS[CATS.length - 1];
 
-let state = { transactions: [], periods: [], monthlyByPerson: {}, config: { myRatioPercent: 80 } };
-let curType = 'expense';
+// ===== Trạng thái =====
+const LS = {
+  get(k, d){ try { const v = localStorage.getItem('quy.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v){ try { localStorage.setItem('quy.' + k, JSON.stringify(v)); } catch {} },
+};
+let state = LS.get('cache', null) || {transactions: [], periods: [], config: {myRatioPercent: 80, members: ['Mẹ Hà','Loan','Linh','My'], monthlyBudget: 0}};
 
-// Thứ tự cố định hiển thị thành viên, khớp với dropdown "Người thực hiện"
-const FIXED_MEMBERS = ['Mẹ Hà', 'Loan', 'Linh', 'My'];
-
+// ===== Tiện ích =====
+const $ = id => document.getElementById(id);
 const fmt = n => Number(n || 0).toLocaleString('vi-VN') + ' ₫';
+const pad = n => String(n).padStart(2, '0');
+function todayStr(){ const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function formatDateVN(s){ const [y, m, d] = String(s || '').slice(0, 10).split('-'); return d ? `${d}/${m}/${y}` : String(s || ''); }
+const WD = ['CN','T2','T3','T4','T5','T6','T7'];
+function dayLabel(s){
+  const [y, m, d] = s.split('-').map(Number);
+  const diff = Math.round((new Date(todayStr()) - new Date(s)) / 864e5);
+  return (diff === 0 ? 'Hôm nay' : diff === 1 ? 'Hôm qua' : WD[new Date(y, m-1, d).getDay()]) + `, ${pad(d)}/${pad(m)}`;
+}
+const sum = arr => arr.reduce((s, t) => s + Number(t.amount || 0), 0);
+const curTx = () => state.transactions.filter(t => !t.period);
+const expenses = arr => arr.filter(t => t.type === 'expense');
+const incomes = arr => arr.filter(t => t.type === 'income');
+const parseMoney = v => Number(String(v).replace(/\D/g, '')) || 0;
 
-// Định dạng ngày DD/MM/YYYY, chịu được cả 'yyyy-MM-dd' lẫn chuỗi datetime đầy đủ
-function formatDateVN(dateStr){
-  if (!dateStr) return '';
-  const datePart = String(dateStr).split('T')[0];
-  const [y, m, d] = datePart.split('-');
-  if (!y || !m || !d) return String(dateStr);
-  return `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
-}
+let curType = 'expense', curCat = 'tonghop', catTouched = false, editingId = null;
+let month = todayStr().slice(0, 7), whoFilter = '';
 
-function toggleNote(id){
-  const el = document.getElementById('note-' + id);
-  if (el) el.classList.toggle('expanded');
+let bannerTimer;
+function showBanner(msg, kind){
+  const b = $('banner'); b.textContent = msg; b.className = 'banner show ' + (kind || '');
+  clearTimeout(bannerTimer); if (kind === 'ok') bannerTimer = setTimeout(hideBanner, 2000);
 }
-
-function toggleRatioEditor(){
-  document.getElementById('ratioEditor').classList.toggle('show');
-}
-
-function showBanner(msg, isError){
-  const b = document.getElementById('banner');
-  b.textContent = msg;
-  b.className = 'banner show' + (isError ? ' err' : '');
-}
-function hideBanner(){
-  document.getElementById('banner').className = 'banner';
-}
-function showLoading(show){
-  document.getElementById('loadingOverlay').classList.toggle('hide', !show);
-}
-function setButtonsDisabled(disabled){
-  document.getElementById('btnAdd').disabled = disabled;
-  document.getElementById('btnResetPeriod').disabled = disabled;
-  document.querySelectorAll('.del').forEach(b => b.disabled = disabled);
+function hideBanner(){ $('banner').className = 'banner'; }
+async function busy(btn, label, fn){
+  const orig = btn.innerHTML; btn.disabled = true; btn.innerHTML = `<span class="spin"></span>${label}`;
+  try { return await fn(); } finally { btn.disabled = false; btn.innerHTML = orig; }
 }
 
-function isConfigured(){
-  return CONFIG.API_URL && CONFIG.API_URL.startsWith('http');
-}
-
+// ===== API =====
 async function apiGet(){
-  const res = await fetch(`${CONFIG.API_URL}?action=getData`);
+  const res = await fetch(`${API_URL}?action=getData`);
   const json = await res.json();
   if (json.error) throw new Error(json.error);
   return json;
 }
-
 async function apiPost(payload){
-  const res = await fetch(CONFIG.API_URL, {
+  const res = await fetch(API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // tránh CORS preflight với Apps Script
-    body: JSON.stringify({ ...payload, secret: CONFIG.SECRET_KEY })
+    headers: {'Content-Type': 'text/plain;charset=utf-8'}, // tránh CORS preflight với Apps Script
+    body: JSON.stringify(payload),
   });
   const json = await res.json();
   if (json.error) throw new Error(json.error);
+  applyData(json.data);
   return json;
 }
+function applyData(d){
+  if (!d || !Array.isArray(d.transactions) || !Array.isArray(d.config?.members))
+    throw new Error('Backend chưa phải bản mới — cần Deploy Code.gs v2 (xem SETUP.md)');
+  state = d; LS.set('cache', d); fillMembers(); render();
+}
+
+async function loadData(manual){
+  const btn = $('btnRefresh');
+  btn.innerHTML = '<span class="spin"></span>Đang tải';
+  try {
+    applyData(await apiGet());
+    if (manual) showBanner('✅ Đã cập nhật', 'ok');
+  } catch (err) {
+    showBanner('⚠️ Không tải được dữ liệu. ' + (state.transactions.length ? 'Đang hiện dữ liệu lần trước. ' : '') + '(' + err.message + ')', 'err');
+  } finally { btn.innerHTML = '↻ Tải lại'; }
+}
+
+// ===== Tabs =====
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+function showTab(name){
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.id === 'tab-' + name));
+  render(); window.scrollTo(0, 0);
+}
+
+// ===== Form =====
+$('catPicker').innerHTML = CATS.map(c => `<button class="cat" type="button" data-c="${c.id}"><b>${c.icon}</b>${c.name}</button>`).join('');
+$('catPicker').onclick = e => { const b = e.target.closest('.cat'); if (b){ catTouched = true; setCat(b.dataset.c); } };
+function setCat(id){ curCat = id; document.querySelectorAll('.cat').forEach(b => b.classList.toggle('on', b.dataset.c === id)); }
+function autoCat(){ if (!catTouched) setCat($('note').value.trim() ? guessCat($('note').value) : 'tonghop'); }
+
+$('amountChips').innerHTML = [50, 100, 200, 500].map(k => `<button class="chip" type="button" data-k="${k}">+${k}k</button>`).join('')
+  + '<button class="chip" type="button" data-k="0">Xoá</button>';
+$('amountChips').onclick = e => {
+  const k = e.target.dataset.k; if (k == null) return;
+  const v = k === '0' ? 0 : parseMoney($('amount').value) + Number(k) * 1000;
+  $('amount').value = v ? v.toLocaleString('vi-VN') : '';
+};
 
 function setType(t){
   curType = t;
-  document.getElementById('btnExpense').classList.toggle('active', t === 'expense');
-  document.getElementById('btnIncome').classList.toggle('active', t === 'income');
+  $('btnExpense').classList.toggle('active', t === 'expense');
+  $('btnIncome').classList.toggle('active', t === 'income');
+  $('catBlock').style.display = t === 'expense' ? '' : 'none';
+}
+function formatMoney(el){ const raw = el.value.replace(/\D/g, ''); el.value = raw ? Number(raw).toLocaleString('vi-VN') : ''; }
+
+function fillMembers(){
+  const sel = $('who'), keep = sel.value || LS.get('who', '');
+  const names = [...state.config.members];
+  if (keep && !names.includes(keep)) names.push(keep);
+  sel.innerHTML = names.map(n => `<option>${esc(n)}</option>`).join('');
+  if (keep) sel.value = keep;
+}
+$('who').onchange = () => { if (!editingId) LS.set('who', $('who').value); };
+
+function resetForm(){
+  editingId = null; catTouched = false;
+  $('amount').value = ''; $('note').value = ''; $('date').value = todayStr();
+  setType('expense'); setCat('tonghop');
+  if (LS.get('who', '')) $('who').value = LS.get('who', '');
+  $('btnSave').innerHTML = '＋ Thêm giao dịch';
+  $('editBtns').style.display = 'none'; $('editingFlag').style.display = 'none';
 }
 
-function formatMoney(el){
-  const raw = el.value.replace(/\D/g, '');
-  el.value = raw ? Number(raw).toLocaleString('vi-VN') : '';
+function editTx(id){
+  const t = state.transactions.find(x => x.id === id);
+  if (!t) return;
+  if (t.period){ showBanner('Giao dịch thuộc kỳ đã chốt — chỉ xem, không sửa được.', ''); return; }
+  showTab('home');
+  editingId = id; catTouched = true;
+  setType(t.type); setCat(t.cat || guessCat(t.note));
+  if (![...$('who').options].some(o => o.value === t.who)) $('who').add(new Option(t.who));
+  $('who').value = t.who;
+  $('amount').value = Number(t.amount).toLocaleString('vi-VN');
+  $('note').value = t.note || ''; $('date').value = String(t.date).slice(0, 10);
+  $('btnSave').innerHTML = '💾 Lưu thay đổi';
+  $('editBtns').style.display = 'block';
+  $('editingFlag').style.display = 'block';
+  $('editingFlag').textContent = `Đang sửa: ${t.who} · ${fmt(t.amount)} · ${formatDateVN(t.date)}`;
+  $('formCard').scrollIntoView({behavior: 'smooth', block: 'start'});
 }
 
-function applyServerData(data){
-  state.transactions = data.transactions || [];
-  state.periods = data.periods || [];
-  state.monthlyByPerson = data.monthlyByPerson || {};
-  state.config = data.config || { myRatioPercent: 80 };
+async function saveTx(){
+  const amount = parseMoney($('amount').value);
+  if (!amount){ showBanner('⚠️ Vui lòng nhập số tiền lớn hơn 0.', 'err'); return; }
+  const data = {type: curType, who: $('who').value, amount, note: $('note').value.trim(),
+    date: $('date').value || todayStr(), cat: curType === 'expense' ? curCat : ''};
+  const wasEditing = !!editingId;
+  try {
+    await busy($('btnSave'), 'Đang lưu...', () =>
+      apiPost(wasEditing ? {action: 'updateTx', id: editingId, data} : {action: 'addTx', data}));
+    resetForm();
+    showBanner(wasEditing ? '✅ Đã cập nhật' : `✅ Đã thêm ${fmt(amount)}`, 'ok');
+  } catch (err) {
+    // Giữ nguyên dữ liệu trên form khi lỗi
+    showBanner('⚠️ Lưu thất bại, dữ liệu vẫn còn trên form. Thử lại. (' + err.message + ')', 'err');
+  }
 }
 
-function updateRatioPreview(){
-  const my = Math.min(99, Math.max(1, Number(document.getElementById('ratioMyInput').value) || 80));
-  document.getElementById('ratioLinhPreview').textContent = 100 - my;
+async function delTx(){
+  if (!editingId || !confirm('Xoá giao dịch này?')) return;
+  try {
+    await busy($('btnDelete'), 'Đang xoá...', () => apiPost({action: 'deleteTx', id: editingId}));
+    resetForm(); showBanner('🗑 Đã xoá', 'ok');
+  } catch (err) { showBanner('⚠️ Xoá thất bại. (' + err.message + ')', 'err'); }
 }
 
 async function saveRatio(){
-  const my = Number(document.getElementById('ratioMyInput').value);
-  if (!(my > 0 && my < 100)){
-    showBanner('⚠️ Tỷ lệ My phải từ 1 đến 99.', true);
-    return;
-  }
-  const btn = document.getElementById('btnSaveRatio');
-  const originalLabel = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<span class="inline-spinner"></span>Đang lưu...';
+  const my = Number($('ratioMyInput').value);
+  if (!(my >= 1 && my <= 99)){ showBanner('⚠️ Tỷ lệ My phải từ 1 đến 99.', 'err'); return; }
   try {
-    const result = await apiPost({ action: 'setRatio', data: { myRatioPercent: my } });
-    applyServerData(result.data);
-    hideBanner();
-    render();
-  } catch (err) {
-    showBanner('⚠️ Lưu tỷ lệ thất bại. Thử lại. (' + err.message + ')', true);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalLabel;
-  }
+    await busy($('btnSaveRatio'), 'Đang lưu...', () => apiPost({action: 'setConfig', data: {myRatioPercent: my}}));
+    $('ratioEditor').classList.remove('show'); showBanner('✅ Đã lưu tỷ lệ', 'ok');
+  } catch (err) { showBanner('⚠️ Lưu tỷ lệ thất bại. (' + err.message + ')', 'err'); }
 }
 
-async function loadData(){
-  if (!isConfigured()){
-    showLoading(false);
-    showBanner('⚠️ Chưa cấu hình API_URL trong file index.html. Xem SETUP.md để lấy link Web App.', true);
-    return;
-  }
-  showLoading(true);
+async function saveBudget(){
   try {
-    const data = await apiGet();
-    applyServerData(data);
-    hideBanner();
-    render();
-  } catch (err) {
-    showBanner('⚠️ Không tải được dữ liệu. Kiểm tra mạng hoặc thử lại. (' + err.message + ')', true);
-  } finally {
-    showLoading(false);
-  }
+    await busy($('btnBudget'), '', () => apiPost({action: 'setConfig', data: {monthlyBudget: parseMoney($('budgetInput').value)}}));
+    showBanner('✅ Đã lưu ngân sách', 'ok');
+  } catch (err) { showBanner('⚠️ Lưu thất bại. (' + err.message + ')', 'err'); }
 }
 
-async function addTx(){
-  if (!isConfigured()){ showBanner('⚠️ Chưa cấu hình API_URL.', true); return; }
-
-  const amountRaw = document.getElementById('amount').value.replace(/\D/g, '');
-  const amount = Number(amountRaw);
-  const who = document.getElementById('who').value;
-  const note = document.getElementById('note').value.trim();
-  const date = document.getElementById('date').value || new Date().toISOString().slice(0, 10);
-
-  if (!amount || amount <= 0){
-    showBanner('⚠️ Vui lòng nhập số tiền lớn hơn 0.', true);
-    return;
-  }
-
-  const btn = document.getElementById('btnAdd');
-  const originalLabel = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<span class="inline-spinner"></span>Đang lưu...';
-
+async function closePeriod(){
+  const txs = curTx();
+  if (!txs.length){ showBanner('⚠️ Chưa có giao dịch để chốt kỳ.', 'err'); return; }
+  const out = sum(expenses(txs)), inn = sum(incomes(txs)), r = state.config.myRatioPercent;
+  const my = Math.round(out * r / 100);
+  if (!confirm(`Chốt kỳ này?\n\nTổng chi: ${fmt(out)}\nMy (${r}%): ${fmt(my)}\nLinh (${100 - r}%): ${fmt(out - my)}\n\nSố dư còn lại ${fmt(inn - out)} sẽ chuyển sang kỳ mới.`)) return;
   try {
-    const result = await apiPost({ action: 'addTx', data: { type: curType, who, amount, note, date } });
-    applyServerData(result.data);
-    document.getElementById('amount').value = '';
-    document.getElementById('note').value = '';
-    hideBanner();
-    render();
-  } catch (err) {
-    // Không xoá dữ liệu người dùng đã nhập khi lỗi
-    showBanner('⚠️ Lưu thất bại, dữ liệu bạn nhập vẫn còn trên form. Thử lại. (' + err.message + ')', true);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalLabel;
-  }
+    await busy($('btnClose'), 'Đang chốt kỳ...', () => apiPost({action: 'closePeriod'}));
+    showBanner('✅ Đã chốt kỳ', 'ok');
+  } catch (err) { showBanner('⚠️ Chốt kỳ thất bại. (' + err.message + ')', 'err'); }
 }
 
-async function delTx(id){
-  if (!confirm('Xóa giao dịch này?')) return;
-  setButtonsDisabled(true);
-  try {
-    const result = await apiPost({ action: 'deleteTx', id });
-    applyServerData(result.data);
-    hideBanner();
-    render();
-  } catch (err) {
-    showBanner('⚠️ Xóa thất bại. Thử lại. (' + err.message + ')', true);
-  } finally {
-    setButtonsDisabled(false);
-  }
+// ===== Render =====
+function txRow(t, showDate = true){
+  const c = catOf(t.cat);
+  const icon = t.type === 'income' ? '💰' : c.icon;
+  const sub = t.note || (t.type === 'income' ? 'Đóng quỹ' : c.name);
+  return `<div class="tx ${t.type}" onclick="${t.period ? `this.classList.toggle('open')` : `editTx('${esc(t.id)}')`}">
+    <div class="icon">${icon}</div>
+    <div class="info">
+      <div class="who">${esc(t.who)}${t.period ? '<span class="badge">đã chốt</span>' : ''}</div>
+      <div class="note">${esc(sub)}</div>
+      ${showDate ? `<div class="date">${formatDateVN(t.date)}${t.type === 'expense' ? ' · ' + c.name : ''}</div>` : ''}
+    </div>
+    <div class="amt">${t.type === 'expense' ? '−' : '+'}${fmt(t.amount)}</div>
+  </div>`;
 }
 
-async function resetPeriod(){
-  if (!isConfigured()){ showBanner('⚠️ Chưa cấu hình API_URL.', true); return; }
-  if (!state.transactions.length){ showBanner('⚠️ Chưa có giao dịch để chốt kỳ.', true); return; }
+function renderHome(){
+  const txs = curTx(), out = sum(expenses(txs)), inn = sum(incomes(txs)), bal = inn - out;
+  const el = $('balance');
+  el.textContent = fmt(bal);
+  el.className = 'amount' + (bal < 0 ? ' negative' : bal < 300000 ? ' low' : '');
+  $('totalIn').textContent = fmt(inn); $('totalOut').textContent = fmt(out);
+  $('txList').innerHTML = txs.length ? txs.map(t => txRow(t)).join('') : '<div class="empty">Chưa có giao dịch nào</div>';
+}
 
-  const out = state.transactions.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
-  const inn = state.transactions.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
-  const myRatio = (state.config.myRatioPercent || 80) / 100;
-  const my = Math.round(out * myRatio);
-  const linh = out - my;
-  const carry = inn - out;
+function renderSplit(){
+  const txs = curTx(), out = sum(expenses(txs)), r = state.config.myRatioPercent || 80;
+  const needMy = Math.round(out * r / 100), needLinh = out - needMy;
+  $('splitTotal').textContent = fmt(out);
+  $('splitMy').textContent = fmt(needMy); $('splitLinh').textContent = fmt(needLinh);
+  $('splitPctMy').textContent = r + '%'; $('splitPctLinh').textContent = (100 - r) + '%';
+  $('splitBarMy').style.width = r + '%'; $('splitBarLinh').style.width = (100 - r) + '%';
+  if (document.activeElement?.id !== 'ratioMyInput'){ $('ratioMyInput').value = r; $('ratioLinhPreview').textContent = 100 - r; }
 
-  const msg = `Chốt kỳ này?\n\nTổng chi: ${fmt(out)}\nMy (${state.config.myRatioPercent}%): ${fmt(my)}\nLinh (${100 - state.config.myRatioPercent}%): ${fmt(linh)}\n\nSố dư còn lại ${fmt(carry)} sẽ chuyển sang kỳ mới.`;
-  if (!confirm(msg)) return;
+  // Quỹ hoàn lại cho từng người đã tự chi đi chợ
+  const byWho = {};
+  expenses(txs).forEach(t => byWho[t.who] = (byWho[t.who] || 0) + Number(t.amount));
+  $('reimburseList').innerHTML = Object.keys(byWho).length
+    ? Object.entries(byWho).map(([n, v]) => `<div class="settle-row"><span>${esc(n)}</span><b>${fmt(v)}</b></div>`).join('')
+    : '<div class="empty">Chưa có ai chi tiêu</div>';
 
-  const btn = document.getElementById('btnResetPeriod');
-  const originalLabel = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<span class="inline-spinner"></span>Đang chốt kỳ...';
+  // Mẹ Hà + Loan + My gộp chung phía "My". Chỉ so phần Linh đã tự chi với phần Linh phải chịu.
+  const linhIn = byWho['Linh'] || 0, settle = linhIn - needLinh;
+  $('settleSub').textContent = `Đối chiếu phần Linh đã tự chi đi chợ (${100 - r}%)`;
+  $('settleLinhIn').textContent = fmt(linhIn); $('settleLinhNeed').textContent = fmt(needLinh);
+  const s = $('settleResult');
+  if (Math.abs(settle) < 1){ s.textContent = '✅ Đã cân bằng — không ai cần trả ai'; s.className = 'settle-result balanced'; }
+  else if (settle > 0){ s.textContent = `👉 My cần trả lại Linh: ${fmt(settle)}`; s.className = 'settle-result'; }
+  else { s.textContent = `👉 Linh cần trả My: ${fmt(-settle)}`; s.className = 'settle-result'; }
 
-  try {
-    const result = await apiPost({ action: 'closePeriod' });
-    applyServerData(result.data);
-    hideBanner();
-    render();
-  } catch (err) {
-    showBanner('⚠️ Chốt kỳ thất bại. Thử lại. (' + err.message + ')', true);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalLabel;
-  }
+  $('periodList').innerHTML = state.periods.length ? state.periods.map(p => `
+    <div class="period">
+      <div class="head"><span>Chốt ngày ${formatDateVN(p.closed_date)}</span><span>Chi: ${fmt(p.total_out)}</span></div>
+      <div class="muted">${p.tx_count} giao dịch · My (${p.my_ratio_percent}%) trả ${fmt(p.my_share)} · Linh (${100 - p.my_ratio_percent}%) trả ${fmt(p.linh_share)}</div>
+    </div>`).join('') : '<div class="empty">Chưa có kỳ nào được chốt</div>';
+}
+
+function shiftMonth(d){
+  const [y, m] = month.split('-').map(Number), dt = new Date(y, m - 1 + d, 1);
+  month = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}`; render();
+}
+const inMonth = m => state.transactions.filter(t => String(t.date).startsWith(m));
+
+function renderHistory(){
+  const people = [...new Set(state.transactions.map(t => t.who))];
+  $('whoFilter').innerHTML = ['', ...people].map(n => `<button class="chip ${n === whoFilter ? 'on' : ''}" type="button" data-w="${esc(n)}">${n ? esc(n) : 'Tất cả'}</button>`).join('');
+  const q = $('search').value.trim().toLowerCase();
+  let txs = inMonth(month);
+  if (whoFilter) txs = txs.filter(t => t.who === whoFilter);
+  if (q) txs = txs.filter(t => [t.who, t.note, catOf(t.cat).name].join(' ').toLowerCase().includes(q));
+  if (!txs.length){ $('historyList').innerHTML = '<div class="empty">Không có giao dịch</div>'; return; }
+  const byDay = {};
+  txs.forEach(t => (byDay[String(t.date).slice(0, 10)] ||= []).push(t));
+  $('historyList').innerHTML = `<p class="muted" style="margin:12px 4px 0">${txs.length} giao dịch · chi ${fmt(sum(expenses(txs)))} · đóng ${fmt(sum(incomes(txs)))}</p>`
+    + Object.keys(byDay).sort().reverse().map(d => `<div class="day-h"><span>${dayLabel(d)}</span><span>−${fmt(sum(expenses(byDay[d])))}</span></div>
+      <div class="card" style="padding:4px 14px;margin-bottom:6px">${byDay[d].map(t => txRow(t, false)).join('')}</div>`).join('');
+}
+$('whoFilter').onclick = e => { const w = e.target.dataset.w; if (w != null){ whoFilter = w; renderHistory(); } };
+
+function renderStats(){
+  const ex = expenses(inMonth(month)), total = sum(ex);
+  const [y, m] = month.split('-').map(Number);
+  const daysIn = new Date(y, m, 0).getDate(), isCur = month === todayStr().slice(0, 7);
+  const elapsed = isCur ? new Date().getDate() : daysIn;
+  const pd = new Date(y, m - 2, 1), prevTotal = sum(expenses(inMonth(`${pd.getFullYear()}-${pad(pd.getMonth()+1)}`)));
+  const budget = state.config.monthlyBudget || 0;
+  const inn = sum(incomes(inMonth(month)));
+
+  let h = `<div class="card"><div class="muted">Tổng chi đi chợ tháng</div><div class="big">${fmt(total)}</div>`;
+  if (budget){
+    const pct = Math.min(100, total / budget * 100);
+    const color = total > budget ? 'var(--red)' : pct > 80 ? 'var(--orange)' : 'var(--green)';
+    h += `<div class="bar"><i style="width:${pct}%;background:${color}"></i></div>
+      <div class="muted" style="margin-top:6px">${total > budget ? `Vượt ${fmt(total - budget)}` : `Còn ${fmt(budget - total)}`} / ngân sách ${fmt(budget)}</div>`;
+  } else h += `<div class="muted">Đặt ngân sách ở cuối trang để theo dõi.</div>`;
+  h += `</div><div class="card kv">
+    <div>TB / ngày<b>${fmt(Math.round(total / (elapsed || 1)))}</b></div>
+    <div>Số ngày đi chợ<b>${new Set(ex.map(t => t.date)).size} ngày</b></div>
+    <div>So tháng trước<b>${prevTotal ? (total >= prevTotal ? '▲ ' : '▼ ') + Math.abs(Math.round((total - prevTotal) / prevTotal * 100)) + '%' : '—'}</b></div>
+    <div>${isCur ? 'Dự kiến cả tháng' : 'Đóng quỹ trong tháng'}<b>${fmt(isCur ? Math.round(total / (elapsed || 1) * daysIn) : inn)}</b></div></div>`;
+
+  if (!ex.length){ $('statsBody').innerHTML = h + '<div class="card empty">Chưa có chi tiêu tháng này</div>'; return; }
+
+  const byWho = {};
+  ex.forEach(t => byWho[t.who] = (byWho[t.who] || 0) + Number(t.amount));
+  h += `<div class="card"><h2>👥 Chi theo người</h2>${Object.entries(byWho).sort((a, b) => b[1] - a[1]).map(([n, v]) =>
+    `<div class="stat-row"><span>${esc(n)}</span><b style="color:var(--red)">${fmt(v)}</b></div>`).join('')}</div>`;
+
+  const byCat = CATS.map(c => ({c, v: sum(ex.filter(t => (t.cat || 'khac') === c.id))})).filter(x => x.v).sort((a, b) => b.v - a.v);
+  h += `<div class="card"><h2>🧾 Chi theo loại</h2>${byCat.map(({c, v}) => `<div class="catrow"><div class="top"><span>${c.icon} ${c.name}</span>
+    <span>${fmt(v)} <span class="muted">${Math.round(v / total * 100)}%</span></span></div><div class="bar"><i style="width:${v / byCat[0].v * 100}%"></i></div></div>`).join('')}</div>`;
+
+  const perDay = Array.from({length: daysIn}, (_, d) => sum(ex.filter(t => +String(t.date).slice(8, 10) === d + 1)));
+  const max = Math.max(...perDay);
+  h += `<div class="card"><h2>📅 Chi theo ngày</h2><div class="days">${perDay.map((v, d) =>
+    `<i class="${v ? '' : 'zero'}" style="height:${v ? Math.max(4, v / max * 100) : 2}%" title="${d + 1}/${m}: ${fmt(v)}"></i>`).join('')}</div>
+    <div class="muted" style="display:flex;justify-content:space-between"><span>1</span><span>${daysIn}</span></div></div>`;
+  $('statsBody').innerHTML = h;
 }
 
 function render(){
-  const txs = state.transactions;
-  const out = txs.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
-  const inn = txs.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
-  const bal = inn - out;
-  const myRatioPercent = state.config.myRatioPercent || 80;
-
-  const balEl = document.getElementById('balance');
-  balEl.textContent = fmt(bal);
-  balEl.className = 'amount' + (bal < 0 ? ' negative' : bal < 300000 ? ' low' : '');
-  document.getElementById('totalIn').textContent = fmt(inn);
-  document.getElementById('totalOut').textContent = fmt(out);
-  document.getElementById('subtitle').textContent = `Quỹ chung gia đình — My ${myRatioPercent}% · Linh ${100 - myRatioPercent}%`;
-
-  // Bảng giao dịch
-  const list = document.getElementById('txList');
-  list.innerHTML = txs.length ? txs.map(t => `
-    <div class="tx ${t.type}">
-      <div class="icon">${t.type === 'expense' ? '🧺' : '💰'}</div>
-      <div class="info">
-        <div class="who">${t.who}</div>
-        <div class="note" id="note-${t.id}">${t.note || (t.type === 'income' ? 'Đóng quỹ' : 'Đi chợ')}</div>
-        <div class="date">${formatDateVN(t.date)}</div>
-      </div>
-      <div class="amt">${t.type === 'expense' ? '−' : '+'}${fmt(t.amount)}</div>
-      <div class="actions">
-        <button class="detail-btn" onclick="toggleNote('${t.id}')" title="Xem đầy đủ ghi chú">🔍</button>
-        <button class="del" onclick="delTx('${t.id}')" title="Xóa">🗑</button>
-      </div>
-    </div>`).join('') : '<div class="empty">Chưa có giao dịch nào</div>';
-
-  // Thống kê theo người TRONG THÁNG hiện tại (server tính từ Archive + kỳ hiện tại, không phụ thuộc việc chốt kỳ)
-  const now = new Date();
-  document.getElementById('statMonthLabel').textContent = `(tháng ${now.getMonth() + 1}/${now.getFullYear()})`;
-  const monthly = state.monthlyByPerson || {};
-  const stat = document.getElementById('statList');
-  stat.innerHTML = FIXED_MEMBERS.map(n => `<div class="stat-row"><span>${n}</span><b>${fmt(monthly[n] || 0)}</b></div>`).join('');
-
-  // Chia theo tỷ lệ có thể tuỳ chỉnh
-  const requiredMy = Math.round(out * (myRatioPercent / 100));
-  const requiredLinh = out - requiredMy; // đảm bảo tổng đúng bằng out, tránh lệch do làm tròn
-  document.getElementById('splitTotal').textContent = fmt(out);
-  document.getElementById('splitMy').textContent = fmt(requiredMy);
-  document.getElementById('splitLinh').textContent = fmt(requiredLinh);
-  document.getElementById('splitPctMy').textContent = myRatioPercent + '%';
-  document.getElementById('splitPctLinh').textContent = (100 - myRatioPercent) + '%';
-  document.getElementById('splitBarMy').style.width = myRatioPercent + '%';
-  document.getElementById('splitBarLinh').style.width = (100 - myRatioPercent) + '%';
-  if (document.activeElement?.id !== 'ratioMyInput') {
-    document.getElementById('ratioMyInput').value = myRatioPercent;
-    document.getElementById('ratioLinhPreview').textContent = 100 - myRatioPercent;
+  document.querySelectorAll('.mLabel').forEach(e => e.textContent = `Tháng ${+month.slice(5)}/${month.slice(0, 4)}`);
+  const tab = document.querySelector('.tab.on').id;
+  if (tab === 'tab-home') renderHome();
+  if (tab === 'tab-split') renderSplit();
+  if (tab === 'tab-history') renderHistory();
+  if (tab === 'tab-stats'){
+    renderStats();
+    if (document.activeElement?.id !== 'budgetInput')
+      $('budgetInput').value = state.config.monthlyBudget ? Number(state.config.monthlyBudget).toLocaleString('vi-VN') : '';
   }
-
-  // Ai cần trả ai (dựa trên chi tiêu thực tế của kỳ này, không dùng đóng góp)
-  const byWho = {};
-  txs.filter(t => t.type === 'expense').forEach(t => { byWho[t.who] = (byWho[t.who] || 0) + Number(t.amount); });
-  const spentNames = Object.keys(byWho);
-
-  // 1) Quỹ cần hoàn lại cho từng người đã trực tiếp đi chợ (bất kể thuộc nhóm My hay Linh)
-  const reimburseEl = document.getElementById('reimburseList');
-  reimburseEl.innerHTML = spentNames.length
-    ? spentNames.map(n => `<div class="settle-row"><span>${n}</span><b>${fmt(byWho[n])}</b></div>`).join('')
-    : '<div class="empty">Chưa có ai chi tiêu</div>';
-
-  // 2) Mẹ Hà + Loan + My được gộp chung là "My" (bên chịu myRatioPercent%).
-  //    "Đóng góp" (income) chỉ ảnh hưởng Số dư quỹ/tiết kiệm chung, KHÔNG dùng ở đây.
-  //    Ai cần trả ai chỉ dựa vào ai đã TỰ CHI TIỀN đi chợ so với phần mình phải chịu theo tỷ lệ —
-  //    vì vậy nếu Linh là người đi chợ, Linh sẽ là người được hoàn lại phần chi vượt tỷ lệ của mình.
-  const expenseLinh = byWho['Linh'] || 0;
-  const settle = expenseLinh - requiredLinh; // dương: Linh tự chi vượt phần mình -> My cần trả lại Linh; âm: Linh tự chi thiếu -> Linh cần trả My
-  const linhPct = 100 - myRatioPercent;
-
-  document.getElementById('settleSubtitle').textContent = `Đối chiếu phần Linh đã tự chi đi chợ (${linhPct}%)`;
-  document.getElementById('settleLinhPctLabel').textContent = `(${linhPct}%)`;
-  document.getElementById('settleLinhIn').textContent = fmt(expenseLinh);
-  document.getElementById('settleLinhNeed').textContent = fmt(requiredLinh);
-
-  const settleEl = document.getElementById('settleResult');
-  if (Math.abs(settle) < 1) {
-    settleEl.textContent = '✅ Đã cân bằng — không ai cần trả ai';
-    settleEl.className = 'settle-result balanced';
-  } else if (settle > 0) {
-    settleEl.textContent = `👉 My cần trả lại Linh: ${fmt(settle)}`;
-    settleEl.className = 'settle-result';
-  } else {
-    settleEl.textContent = `👉 Linh cần trả My: ${fmt(-settle)}`;
-    settleEl.className = 'settle-result';
-  }
-
-  // Lịch sử kỳ
-  const pl = document.getElementById('periodList');
-  const periods = state.periods;
-  pl.innerHTML = periods.length ? periods.map(p => {
-    const ratio = p.my_ratio_percent || 80;
-    return `
-    <div class="period">
-      <div class="head"><span>Chốt ngày ${formatDateVN(p.closed_date)}</span><span>Chi: ${fmt(p.total_out)}</span></div>
-      <div class="detail">${p.tx_count} giao dịch · My (${ratio}%) trả ${fmt(p.my_share)} · Linh (${100 - ratio}%) trả ${fmt(p.linh_share)}</div>
-    </div>`;
-  }).join('') : '<div class="empty">Chưa có kỳ nào được chốt</div>';
 }
 
-document.getElementById('date').value = new Date().toISOString().slice(0, 10);
-loadData();
+// ===== Khởi động =====
+fillMembers(); resetForm(); render(); loadData();
 </script>
 </body>
 </html>
