@@ -291,7 +291,7 @@ function guessCat(text){
 }
 const catOf = id => CATS.find(c => c.id === id) || CATS[CATS.length - 1];
 
-// ===== Trạng thái =====
+// ===== Lưu cache trên máy =====
 const LS = {
   get(k, d){ try { const v = localStorage.getItem('quy.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v){ try { localStorage.setItem('quy.' + k, JSON.stringify(v)); } catch {} },
@@ -478,7 +478,8 @@ async function closePeriod(){
   if (!txs.length){ showBanner('⚠️ Chưa có giao dịch để chốt kỳ.', 'err'); return; }
   const out = sum(expenses(txs)), inn = sum(incomes(txs)), r = state.config.myRatioPercent;
   const my = Math.round(out * r / 100);
-  if (!confirm(`Chốt kỳ này?\n\nTổng chi: ${fmt(out)}\nMy (${r}%): ${fmt(my)}\nLinh (${100 - r}%): ${fmt(out - my)}\n\nSố dư còn lại ${fmt(inn - out)} sẽ chuyển sang kỳ mới.`)) return;
+  if (!confirm(`Chốt kỳ này?\n\nTổng chi: ${fmt(out)}\nMy (${r}%): ${fmt(my)}\nLinh (${100 - r}%): ${fmt(out - my)}\n\n` +
+    (inn > out ? `Số dư còn lại ${fmt(inn - out)} sẽ chuyển sang kỳ mới.` : 'Kỳ mới bắt đầu từ 0.'))) return;
   try {
     await busy($('btnClose'), 'Đang chốt kỳ...', () => apiPost({action: 'closePeriod'}));
     showBanner('✅ Đã chốt kỳ', 'ok');
