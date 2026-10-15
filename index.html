@@ -104,6 +104,8 @@ button:disabled{opacity:.55}
 .period{padding:10px 0;border-bottom:1px solid var(--border);font-size:.88rem}
 .period:last-child{border-bottom:none}
 .period .head{display:flex;justify-content:space-between;font-weight:600}
+.period-settle{margin-top:6px;padding:6px 10px;border-radius:8px;background:var(--purple-bg);color:var(--purple);font-size:.85rem;font-weight:600}
+.period-settle.balanced{background:var(--green-light);color:var(--green)}
 
 /* Lịch sử & thống kê */
 .month{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -536,11 +538,23 @@ function renderSplit(){
   else if (settle > 0){ s.textContent = `👉 My cần trả lại Linh: ${fmt(settle)}`; s.className = 'settle-result'; }
   else { s.textContent = `👉 Linh cần trả My: ${fmt(-settle)}`; s.className = 'settle-result'; }
 
-  $('periodList').innerHTML = state.periods.length ? state.periods.map(p => `
+   $('periodList').innerHTML = state.periods.length ? state.periods.map(p => {
+    const r = p.my_ratio_percent;
+    const pTx = state.transactions.filter(t => t.period === p.period_id);
+    const linhIn = sum(expenses(pTx).filter(t => t.who === 'Linh'));
+    const settle = linhIn - p.linh_share;
+    const result = !pTx.length ? ['', 'Không có chi tiết giao dịch của kỳ này']
+      : Math.abs(settle) < 1 ? ['balanced', '✅ Cân bằng — không ai cần trả ai']
+      : settle > 0 ? ['', `👉 My cần trả Linh: ${fmt(settle)}`]
+      : ['', `👉 Linh cần trả My: ${fmt(-settle)}`];
+    return `
     <div class="period">
       <div class="head"><span>Chốt ngày ${formatDateVN(p.closed_date)}</span><span>Chi: ${fmt(p.total_out)}</span></div>
-      <div class="muted">${p.tx_count} giao dịch · My (${p.my_ratio_percent}%) trả ${fmt(p.my_share)} · Linh (${100 - p.my_ratio_percent}%) trả ${fmt(p.linh_share)}</div>
-    </div>`).join('') : '<div class="empty">Chưa có kỳ nào được chốt</div>';
+      <div class="muted">${p.tx_count} giao dịch · My (${r}%) chịu ${fmt(p.my_share)} · Linh (${100 - r}%) chịu ${fmt(p.linh_share)}</div>
+      ${pTx.length ? `<div class="muted">Linh đã tự chi: ${fmt(linhIn)}</div>` : ''}
+      <div class="period-settle ${result[0]}">${result[1]}</div>
+    </div>`;
+  }).join('') : '<div class="empty">Chưa có kỳ nào được chốt</div>';
 }
 
 function shiftMonth(d){
